@@ -1,32 +1,67 @@
+:root {
+  --bg: #f4f6f8;
+  --card: #ffffff;
+  --text: #111;
+}
+
+.dark {
+  --bg: #121212;
+  --card: #1e1e1e;
+  --text: #f5f5f5;
+}
+
 body {
-    font-family: Arial, sans-serif;
-    background: #f4f6f8;
-    padding: 20px;
-    max-width: 800px;
-    margin: auto;
-  }
-  
-  h1 {
-    text-align: center;
-  }
-  
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  padding: 15px;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+section {
+  background: var(--card);
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 8px;
+}
+
+button {
+  padding: 8px 14px;
+  margin-top: 8px;
+}
+
+.drag-list {
+  list-style: none;
+  padding: 0;
+}
+
+.drag-list li {
+  padding: 8px;
+  margin: 5px 0;
+  background: #ddd;
+  cursor: grab;
+}
+
+.progress {
+  height: 5px;
+  background: #ccc;
+  margin: 10px 0;
+}
+
+#progressBar {
+  height: 100%;
+  width: 0%;
+  background: #4caf50;
+}
+
+@media (max-width: 600px) {
   section {
-    background: #ffffff;
-    padding: 15px;
-    margin-bottom: 20px;
-    border-radius: 6px;
-    box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    padding: 10px;
   }
-  
-  button {
-    margin-top: 10px;
-    padding: 8px 15px;
-    cursor: pointer;
-  }
-  
-  .note {
-    text-align: center;
-    font-size: 14px;
-    color: #555;
-  }
-  
+}
