@@ -4,66 +4,38 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>PDF Toolkit</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
+
 <header>
-  <h1>📄 PDF Toolkit</h1>
-  <button id="themeToggle">🌙</button>
+  <h1 onclick="goHome()">PDF Toolkit</h1>
+
+  <nav>
+    <select onchange="navigate(this.value)">
+      <option value="">Go to…</option>
+      <option value="compress">Compress PDF</option>
+      <option value="merge">Merge PDFs</option>
+      <option value="images">Images → PDF</option>
+      <option value="split">Split PDF</option>
+      <option value="unlock">Unlock PDF</option>
+    </select>
+
+    <button onclick="goBack()">⬅ Back</button>
+  </nav>
 </header>
 
-<p class="note">All processing happens locally in your browser.</p>
+<main id="content">
+  <!-- Dynamic content loads here -->
+</main>
 
 <div class="progress">
   <div id="progressBar"></div>
 </div>
 
-<section>
-  <h2>Compress PDF</h2>
-  <input type="file" id="compressPdf" accept="application/pdf">
-  <input type="number" id="targetSize" placeholder="Target MB" value="1">
-  <button onclick="compressPDF()">Compress</button>
-</section>
-
-<section>
-  <h2>Merge PDFs (Drag to reorder)</h2>
-  <input type="file" id="mergePdf" accept="application/pdf" multiple>
-  <ul id="pdfList" class="drag-list"></ul>
-  <button onclick="mergePDFs()">Merge</button>
-</section>
-
-<section>
-  <h2>Images → PDF (Max 30)</h2>
-  <input type="file" id="images" accept="image/*" multiple>
-  <ul id="imageList" class="drag-list"></ul>
-  <button onclick="imagesToPDF()">Create PDF</button>
-</section>
-
-<section>
-  <h2>Split PDF</h2>
-  <input type="file" id="splitPdf" accept="application/pdf">
-  <input type="text" id="pageRange" placeholder="e.g. 1-3,5">
-  <button onclick="splitPDF()">Split</button>
-</section>
-
-<section>
-  <h2>Unlock PDF</h2>
-  <input type="file" id="lockedPdf" accept="application/pdf">
-  <input type="password" id="pdfPassword" placeholder="Password">
-  <button onclick="unlockPDF()">Unlock</button>
-</section>
-
-<section>
-  <h2>OCR (Experimental)</h2>
-  <input type="file" id="ocrPdf" accept="application/pdf">
-  <button onclick="runOCR()">Extract Text</button>
-  <pre id="ocrOutput"></pre>
-</section>
-
 <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
