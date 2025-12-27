@@ -1,22 +1,33 @@
-body {
-  margin: 0;
-  font-family: system-ui, sans-serif;
-  background: #f4f6f8;
-  color: #111;
+/* -------- RESET -------- */
+* {
+  box-sizing: border-box;
 }
 
+/* -------- BODY -------- */
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #f4f6f8;
+  color: #111;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* -------- HEADER -------- */
 header {
-  background: #222;
-  color: white;
-  padding: 15px;
+  background: #1f2933;
+  color: #fff;
+  padding: 14px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
 header h1 {
-  cursor: pointer;
   margin: 0;
+  font-size: 1.4rem;
+  cursor: pointer;
 }
 
 nav {
@@ -24,40 +35,91 @@ nav {
   gap: 10px;
 }
 
+/* -------- MAIN -------- */
 main {
-  min-height: calc(100vh - 100px);
+  flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
+  padding: 20px;
 }
 
+/* -------- PAGE CARD -------- */
 .page {
-  background: white;
-  padding: 25px;
+  background: #ffffff;
+  padding: 28px;
   width: 100%;
-  max-width: 450px;
+  max-width: 460px;
   text-align: center;
-  border-radius: 10px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  border-radius: 12px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
 }
 
-input, button, select {
+.page h2 {
+  margin-top: 0;
+}
+
+/* -------- INPUTS -------- */
+input,
+select,
+button {
   width: 100%;
   padding: 10px;
-  margin-top: 10px;
+  margin-top: 12px;
+  font-size: 0.95rem;
 }
 
 button {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
   cursor: pointer;
 }
 
+button:hover {
+  background: #1e40af;
+}
+
+/* -------- PROGRESS BAR -------- */
 .progress {
   height: 4px;
-  background: #ddd;
+  background: #e5e7eb;
 }
 
 #progressBar {
   height: 100%;
   width: 0%;
-  background: #4caf50;
+  background: #22c55e;
+  transition: width 0.3s ease;
+}
+
+/* -------- FOOTER -------- */
+footer {
+  background: #0f172a;
+  color: #cbd5f5;
+  text-align: center;
+  padding: 14px 10px;
+  font-size: 0.85rem;
+}
+
+footer a {
+  color: #93c5fd;
+  text-decoration: none;
+}
+
+footer a:hover {
+  text-decoration: underline;
+}
+
+/* -------- MOBILE -------- */
+@media (max-width: 600px) {
+  header {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  nav {
+    width: 100%;
+  }
 }
