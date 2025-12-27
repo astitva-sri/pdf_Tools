@@ -1,99 +1,134 @@
 const { PDFDocument } = PDFLib;
 const { jsPDF } = window.jspdf;
 
-/* ---------------- PDF COMPRESSION ---------------- */
-async function compressPDF() {
-  const file = document.getElementById("compressPdf").files[0];
-  const targetMB = document.getElementById("targetSize").value;
+const progressBar = document.getElementById("progressBar");
 
-  if (!file) return alert("Upload a PDF");
+/* ---------------- DARK MODE ---------------- */
+document.getElementById("themeToggle").onclick = () => {
+  document.body.classList.toggle("dark");
+};
 
-  const arrayBuffer = await file.arrayBuffer();
-  const pdf = await PDFDocument.load(arrayBuffer);
-
-  const newPdf = await PDFDocument.create();
-  const pages = await newPdf.copyPages(pdf, pdf.getPageIndices());
-
-  pages.forEach(page => newPdf.addPage(page));
-
-  const compressedBytes = await newPdf.save({
-    useObjectStreams: true,
-    compress: true
+/* ---------------- DRAG LIST HANDLING ---------------- */
+function makeSortable(list) {
+  let drag;
+  list.addEventListener("dragstart", e => drag = e.target);
+  list.addEventListener("dragover", e => e.preventDefault());
+  list.addEventListener("drop", e => {
+    e.preventDefault();
+    if (e.target.tagName === "LI") {
+      list.insertBefore(drag, e.target.nextSibling);
+    }
   });
-
-  downloadFile(compressedBytes, "compressed.pdf");
 }
 
-/* ---------------- MERGE PDFS ---------------- */
+/* ---------------- COMPRESS (WORKER) ---------------- */
+async function compressPDF() {
+  const file = document.getElementById("compressPdf").files[0];
+  if (!file) return alert("Upload PDF");
+
+  progress(30);
+  const worker = new Worker("worker.js");
+  worker.postMessage({ buffer: await file.arrayBuffer() });
+
+  worker.onmessage = e => {
+    progress(100);
+    download(e.data, "compressed.pdf");
+  };
+}
+
+/* ---------------- MERGE ---------------- */
 async function mergePDFs() {
   const files = document.getElementById("mergePdf").files;
-  if (files.length < 2) return alert("Upload at least 2 PDFs");
+  if (files.length < 2) return alert("Upload ≥2 PDFs");
 
-  const mergedPdf = await PDFDocument.create();
-
-  for (let file of files) {
-    const pdfBytes = await file.arrayBuffer();
-    const pdf = await PDFDocument.load(pdfBytes);
-    const pages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
-    pages.forEach(p => mergedPdf.addPage(p));
+  const merged = await PDFDocument.create();
+  for (let f of files) {
+    progress(20);
+    const pdf = await PDFDocument.load(await f.arrayBuffer());
+    const pages = await merged.copyPages(pdf, pdf.getPageIndices());
+    pages.forEach(p => merged.addPage(p));
   }
-
-  const mergedBytes = await mergedPdf.save();
-  downloadFile(mergedBytes, "merged.pdf");
+  download(await merged.save(), "merged.pdf");
 }
 
 /* ---------------- IMAGES TO PDF ---------------- */
 async function imagesToPDF() {
   const files = document.getElementById("images").files;
-  if (!files.length) return alert("Upload images");
-  if (files.length > 30) return alert("Max 30 images allowed");
+  if (files.length > 30) return alert("Max 30 images");
 
   const pdf = new jsPDF();
-
   for (let i = 0; i < files.length; i++) {
-    const imgData = await readImage(files[i]);
-    if (i !== 0) pdf.addPage();
-    pdf.addImage(imgData, "JPEG", 10, 10, 190, 270);
+    progress((i / files.length) * 100);
+    const img = await readImg(files[i]);
+    if (i) pdf.addPage();
+    pdf.addImage(img, "JPEG", 10, 10, 190, 270);
   }
-
   pdf.save("images.pdf");
 }
 
-/* ---------------- UNLOCK PDF ---------------- */
+/* ---------------- SPLIT ---------------- */
+async function splitPDF() {
+  const file = document.getElementById("splitPdf").files[0];
+  const range = document.getElementById("pageRange").value;
+  if (!file || !range) return alert("Input missing");
+
+  const pdf = await PDFDocument.load(await file.arrayBuffer());
+  const newPdf = await PDFDocument.create();
+
+  parseRange(range).forEach(i => newPdf.addPage(pdf.getPage(i - 1)));
+  download(await newPdf.save(), "split.pdf");
+}
+
+/* ---------------- UNLOCK ---------------- */
 async function unlockPDF() {
   const file = document.getElementById("lockedPdf").files[0];
-  const password = document.getElementById("pdfPassword").value;
-
-  if (!file || !password) return alert("PDF & password required");
-
+  const pwd = document.getElementById("pdfPassword").value;
   try {
-    const pdfBytes = await file.arrayBuffer();
-    const pdf = await PDFDocument.load(pdfBytes, { password });
-
-    const newPdf = await PDFDocument.create();
-    const pages = await newPdf.copyPages(pdf, pdf.getPageIndices());
-    pages.forEach(p => newPdf.addPage(p));
-
-    const unlockedBytes = await newPdf.save();
-    downloadFile(unlockedBytes, "unlocked.pdf");
+    const pdf = await PDFDocument.load(await file.arrayBuffer(), { password: pwd });
+    download(await pdf.save(), "unlocked.pdf");
   } catch {
-    alert("Wrong password or protected PDF");
+    alert("Invalid password");
   }
 }
 
-/* ---------------- HELPERS ---------------- */
-function downloadFile(bytes, filename) {
-  const blob = new Blob([bytes]);
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = filename;
-  link.click();
+/* ---------------- OCR ---------------- */
+async function runOCR() {
+  const file = document.getElementById("ocrPdf").files[0];
+  if (!file) return;
+
+  const worker = Tesseract.createWorker();
+  await worker.loadLanguage("eng");
+  await worker.initialize("eng");
+  const { data } = await worker.recognize(file);
+  document.getElementById("ocrOutput").textContent = data.text;
+  worker.terminate();
 }
 
-function readImage(file) {
-  return new Promise(resolve => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.readAsDataURL(file);
+/* ---------------- HELPERS ---------------- */
+function progress(p) { progressBar.style.width = p + "%"; }
+
+function download(bytes, name) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([bytes]));
+  a.download = name;
+  a.click();
+}
+
+function readImg(file) {
+  return new Promise(res => {
+    const r = new FileReader();
+    r.onload = () => res(r.result);
+    r.readAsDataURL(file);
   });
+}
+
+function parseRange(r) {
+  const pages = [];
+  r.split(",").forEach(p => {
+    if (p.includes("-")) {
+      const [s, e] = p.split("-").map(Number);
+      for (let i = s; i <= e; i++) pages.push(i);
+    } else pages.push(Number(p));
+  });
+  return pages;
 }
