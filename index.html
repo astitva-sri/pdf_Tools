@@ -14,7 +14,7 @@
 
   <nav>
     <select onchange="navigate(this.value)">
-      <option value="">Go to…</option>
+      <option value="">Navigate</option>
       <option value="compress">Compress PDF</option>
       <option value="merge">Merge PDFs</option>
       <option value="images">Images → PDF</option>
@@ -22,17 +22,27 @@
       <option value="unlock">Unlock PDF</option>
     </select>
 
-    <button onclick="goBack()">⬅ Back</button>
+    <button onclick="goBack()">← Back</button>
   </nav>
 </header>
 
 <main id="content">
-  <!-- Dynamic content loads here -->
+  <!-- Dynamic content injected here -->
 </main>
 
 <div class="progress">
   <div id="progressBar"></div>
 </div>
+
+<footer>
+  <p>
+    Built by <strong>Astitva Srivastava</strong> — crafted out of curiosity.  
+    <br>
+    <a href="https://github.com/your-username/pdf-tools" target="_blank">
+      View on GitHub
+    </a>
+  </p>
+</footer>
 
 <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
