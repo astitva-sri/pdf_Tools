@@ -2,44 +2,40 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>PDF Tools</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PDF Toolkit</title>
+  <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-<h1>📄 PDF Utility Tool</h1>
-<p class="note">All processing happens in your browser. No files are uploaded.</p>
+<header>
+  <h1 onclick="goHome()">PDF Toolkit</h1>
 
-<section>
-  <h2>Compress PDF</h2>
-  <input type="file" id="compressPdf" accept="application/pdf">
-  <label>Target size (MB):</label>
-  <input type="number" id="targetSize" value="1" min="0.5" step="0.1">
-  <button onclick="compressPDF()">Compress</button>
-</section>
+  <nav>
+    <select onchange="navigate(this.value)">
+      <option value="">Go to…</option>
+      <option value="compress">Compress PDF</option>
+      <option value="merge">Merge PDFs</option>
+      <option value="images">Images → PDF</option>
+      <option value="split">Split PDF</option>
+      <option value="unlock">Unlock PDF</option>
+    </select>
 
-<section>
-  <h2>Merge PDFs</h2>
-  <input type="file" id="mergePdf" accept="application/pdf" multiple>
-  <button onclick="mergePDFs()">Merge PDFs</button>
-</section>
+    <button onclick="goBack()">⬅ Back</button>
+  </nav>
+</header>
 
-<section>
-  <h2>Images to PDF (Max 30)</h2>
-  <input type="file" id="images" accept="image/png,image/jpeg" multiple>
-  <button onclick="imagesToPDF()">Create PDF</button>
-</section>
+<main id="content">
+  <!-- Dynamic content loads here -->
+</main>
 
-<section>
-  <h2>Remove PDF Password</h2>
-  <input type="file" id="lockedPdf" accept="application/pdf">
-  <input type="password" id="pdfPassword" placeholder="Enter password">
-  <button onclick="unlockPDF()">Unlock PDF</button>
-</section>
+<div class="progress">
+  <div id="progressBar"></div>
+</div>
 
 <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="app.js"></script>
-
 </body>
 </html>
