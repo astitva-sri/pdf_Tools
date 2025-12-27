@@ -1,67 +1,63 @@
-:root {
-  --bg: #f4f6f8;
-  --card: #ffffff;
-  --text: #111;
-}
-
-.dark {
-  --bg: #121212;
-  --card: #1e1e1e;
-  --text: #f5f5f5;
-}
-
 body {
   margin: 0;
   font-family: system-ui, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  padding: 15px;
+  background: #f4f6f8;
+  color: #111;
 }
 
 header {
+  background: #222;
+  color: white;
+  padding: 15px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-section {
-  background: var(--card);
-  padding: 15px;
-  margin-bottom: 15px;
-  border-radius: 8px;
+header h1 {
+  cursor: pointer;
+  margin: 0;
+}
+
+nav {
+  display: flex;
+  gap: 10px;
+}
+
+main {
+  min-height: calc(100vh - 100px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.page {
+  background: white;
+  padding: 25px;
+  width: 100%;
+  max-width: 450px;
+  text-align: center;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+input, button, select {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
 }
 
 button {
-  padding: 8px 14px;
-  margin-top: 8px;
-}
-
-.drag-list {
-  list-style: none;
-  padding: 0;
-}
-
-.drag-list li {
-  padding: 8px;
-  margin: 5px 0;
-  background: #ddd;
-  cursor: grab;
+  cursor: pointer;
 }
 
 .progress {
-  height: 5px;
-  background: #ccc;
-  margin: 10px 0;
+  height: 4px;
+  background: #ddd;
 }
 
 #progressBar {
   height: 100%;
   width: 0%;
   background: #4caf50;
-}
-
-@media (max-width: 600px) {
-  section {
-    padding: 10px;
-  }
 }
