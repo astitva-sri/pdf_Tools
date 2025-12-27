@@ -1,49 +1,103 @@
 const { PDFDocument } = PDFLib;
 const { jsPDF } = window.jspdf;
 
+const content = document.getElementById("content");
 const progressBar = document.getElementById("progressBar");
+const historyStack = [];
 
-/* ---------------- DARK MODE ---------------- */
-document.getElementById("themeToggle").onclick = () => {
-  document.body.classList.toggle("dark");
-};
+/* ---------------- NAVIGATION ---------------- */
 
-/* ---------------- DRAG LIST HANDLING ---------------- */
-function makeSortable(list) {
-  let drag;
-  list.addEventListener("dragstart", e => drag = e.target);
-  list.addEventListener("dragover", e => e.preventDefault());
-  list.addEventListener("drop", e => {
-    e.preventDefault();
-    if (e.target.tagName === "LI") {
-      list.insertBefore(drag, e.target.nextSibling);
-    }
-  });
+function navigate(page) {
+  if (!page) return;
+  historyStack.push(page);
+  renderPage(page);
 }
 
-/* ---------------- COMPRESS (WORKER) ---------------- */
+function goHome() {
+  historyStack.length = 0;
+  renderHome();
+}
+
+function goBack() {
+  historyStack.pop();
+  const last = historyStack.pop();
+  last ? renderPage(last) : renderHome();
+}
+
+function renderHome() {
+  content.innerHTML = `
+    <div class="page">
+      <h2>Select a Tool</h2>
+      <button onclick="navigate('compress')">Compress PDF</button>
+      <button onclick="navigate('merge')">Merge PDFs</button>
+      <button onclick="navigate('images')">Images → PDF</button>
+      <button onclick="navigate('split')">Split PDF</button>
+      <button onclick="navigate('unlock')">Unlock PDF</button>
+    </div>`;
+}
+
+/* ---------------- PAGES ---------------- */
+
+function renderPage(p) {
+  const pages = {
+    compress: `
+      <div class="page">
+        <h2>Compress PDF</h2>
+        <input type="file" id="compressPdf">
+        <button onclick="compressPDF()">Compress</button>
+      </div>`,
+
+    merge: `
+      <div class="page">
+        <h2>Merge PDFs</h2>
+        <input type="file" id="mergePdf" multiple>
+        <button onclick="mergePDFs()">Merge</button>
+      </div>`,
+
+    images: `
+      <div class="page">
+        <h2>Images → PDF</h2>
+        <input type="file" id="images" multiple>
+        <button onclick="imagesToPDF()">Create PDF</button>
+      </div>`,
+
+    split: `
+      <div class="page">
+        <h2>Split PDF</h2>
+        <input type="file" id="splitPdf">
+        <input type="text" id="range" placeholder="1-3,5">
+        <button onclick="splitPDF()">Split</button>
+      </div>`,
+
+    unlock: `
+      <div class="page">
+        <h2>Unlock PDF</h2>
+        <input type="file" id="lockedPdf">
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="unlockPDF()">Unlock</button>
+      </div>`
+  };
+
+  content.innerHTML = pages[p];
+}
+
+/* ---------------- FUNCTIONALITY ---------------- */
+
 async function compressPDF() {
   const file = document.getElementById("compressPdf").files[0];
   if (!file) return alert("Upload PDF");
 
-  progress(30);
   const worker = new Worker("worker.js");
-  worker.postMessage({ buffer: await file.arrayBuffer() });
-
-  worker.onmessage = e => {
-    progress(100);
-    download(e.data, "compressed.pdf");
-  };
+  worker.postMessage(await file.arrayBuffer());
+  worker.onmessage = e => download(e.data, "compressed.pdf");
 }
 
-/* ---------------- MERGE ---------------- */
 async function mergePDFs() {
   const files = document.getElementById("mergePdf").files;
   if (files.length < 2) return alert("Upload ≥2 PDFs");
 
   const merged = await PDFDocument.create();
   for (let f of files) {
-    progress(20);
     const pdf = await PDFDocument.load(await f.arrayBuffer());
     const pages = await merged.copyPages(pdf, pdf.getPageIndices());
     pages.forEach(p => merged.addPage(p));
@@ -51,14 +105,12 @@ async function mergePDFs() {
   download(await merged.save(), "merged.pdf");
 }
 
-/* ---------------- IMAGES TO PDF ---------------- */
 async function imagesToPDF() {
   const files = document.getElementById("images").files;
   if (files.length > 30) return alert("Max 30 images");
 
   const pdf = new jsPDF();
   for (let i = 0; i < files.length; i++) {
-    progress((i / files.length) * 100);
     const img = await readImg(files[i]);
     if (i) pdf.addPage();
     pdf.addImage(img, "JPEG", 10, 10, 190, 270);
@@ -66,11 +118,10 @@ async function imagesToPDF() {
   pdf.save("images.pdf");
 }
 
-/* ---------------- SPLIT ---------------- */
 async function splitPDF() {
   const file = document.getElementById("splitPdf").files[0];
-  const range = document.getElementById("pageRange").value;
-  if (!file || !range) return alert("Input missing");
+  const range = document.getElementById("range").value;
+  if (!file || !range) return alert("Missing input");
 
   const pdf = await PDFDocument.load(await file.arrayBuffer());
   const newPdf = await PDFDocument.create();
@@ -79,33 +130,18 @@ async function splitPDF() {
   download(await newPdf.save(), "split.pdf");
 }
 
-/* ---------------- UNLOCK ---------------- */
 async function unlockPDF() {
   const file = document.getElementById("lockedPdf").files[0];
-  const pwd = document.getElementById("pdfPassword").value;
+  const pwd = document.getElementById("password").value;
   try {
     const pdf = await PDFDocument.load(await file.arrayBuffer(), { password: pwd });
     download(await pdf.save(), "unlocked.pdf");
   } catch {
-    alert("Invalid password");
+    alert("Wrong password");
   }
 }
 
-/* ---------------- OCR ---------------- */
-async function runOCR() {
-  const file = document.getElementById("ocrPdf").files[0];
-  if (!file) return;
-
-  const worker = Tesseract.createWorker();
-  await worker.loadLanguage("eng");
-  await worker.initialize("eng");
-  const { data } = await worker.recognize(file);
-  document.getElementById("ocrOutput").textContent = data.text;
-  worker.terminate();
-}
-
 /* ---------------- HELPERS ---------------- */
-function progress(p) { progressBar.style.width = p + "%"; }
 
 function download(bytes, name) {
   const a = document.createElement("a");
@@ -115,20 +151,23 @@ function download(bytes, name) {
 }
 
 function readImg(file) {
-  return new Promise(res => {
-    const r = new FileReader();
-    r.onload = () => res(r.result);
-    r.readAsDataURL(file);
+  return new Promise(r => {
+    const fr = new FileReader();
+    fr.onload = () => r(fr.result);
+    fr.readAsDataURL(file);
   });
 }
 
 function parseRange(r) {
-  const pages = [];
+  const out = [];
   r.split(",").forEach(p => {
     if (p.includes("-")) {
       const [s, e] = p.split("-").map(Number);
-      for (let i = s; i <= e; i++) pages.push(i);
-    } else pages.push(Number(p));
+      for (let i = s; i <= e; i++) out.push(i);
+    } else out.push(Number(p));
   });
-  return pages;
+  return out;
 }
+
+/* INIT */
+renderHome();
